@@ -7,23 +7,23 @@ require File.join(__FILE__,'../batreport.rb' )
 module Batman
 
 	def self.clear_all_screen  # delete all the screen shots in the $SCREEN_IMG_FOLDER
-		cmd = "del ..\\test_img\\*.png"
+		cmd = "del /Q #{$HOME_DIR}\\test_img\\*.*"
 		puts %x{#{cmd}}
 
 	end
 
 	def self.clear_all_log
-		cmd = "del /Q ..\\test_log\\*.*"
+		cmd = "del /Q #{$HOME_DIR}\\test_log\\*.*"
 		puts %x{#{cmd}}
 	end
 
 	def self.clear_all_error
-		cmd = "del ..\\test_error_log\\*.*"
+		cmd = "del /Q #{$HOME_DIR}\\test_error_log\\*.*"
 		puts %x{#{cmd}}
 	end
 
 	def self.clear_all_attachment
-		cmd = "del ..\\attachment\\*.zip"
+		cmd = "del /Q #{$HOME_DIR}\\attachment\\*.*"
 		puts %x{#{cmd}}
 	end
 
@@ -79,7 +79,7 @@ module Batman
 	      			add_file_to_zip("#{file_path}/#{sub_file_name}", zip) unless sub_file_name == '.' or sub_file_name == '..'  
 	    		end  
 	  	else  
-	    		zip.add(file_path.split("/")[-1], file_path)  
+	    		zip.add(file_path.split("\\")[-1], file_path)  
 	  	end
 	  end
 
@@ -91,86 +91,66 @@ module Batman
 	end 
 
 	def self.generate_attachment
-		file_path_log = File.join(__FILE__, "../../test_log")
-		file_path_img = File.join(__FILE__, "../../test_img")
-		file_path_error = File.join(__FILE__, "../../test_error_log")
-
-		zip_path = File.join(__FILE__,  "../../attachment/test_attachment.zip")
-
-		 
-	  
-		
+		file_path_log = $HOME_DIR + "\\test_log"
+		file_path_img = $HOME_DIR + "\\test_img"
+		file_path_error = $HOME_DIR + "\\test_error_log"
+		time_s = Time.now.to_s.split(" ")[0,2].join("_").delete(":")
+		zip_path = $HOME_DIR + "\\attachment\\test_attachment_#{time_s}.zip"
 
 	  	compress zip_path, file_path_log
 	  	compress zip_path, file_path_img
 	  	compress zip_path, file_path_error
 
-	  	return  zip_path
-
-		
+	  	return  zip_path	
 	end
 
 	def self.send_mail
-		puts "Start Sending mail"
+		puts "* Start Sending mail"
 		# get test data
 		
 		# generate mail
 
 		mail_content = <<-EOS
 
-		大家好!
+	大家好!
 
-		以下是网盘前端自动化测试的执行报告摘要:
+	以下是网盘前端自动化测试的执行报告摘要:
 
-		****************************************************************************
-		测试地址: #{$START_URL}
-		开始时间: #{$START_TIME}
-		结束时间: #{$FINISH_TIME}
-		总计执行用例: #{$TOTAL_CASE}
-		成功: #{$SUCCESS_CASE}
-		失败: #{$FAIL_CASE}
-		运行者: 王鹏程
-		****************************************************************************
-
-		失败用例列表:
-
-		#{$FAIL_LIST}
-
-		用例的测试详情请参考附件中每个用例的执行日志和失败日志.
-
-		说明: 
-		测试失败信息为: ***_ERROR_MESSAGE.txt
-		测试用例日志为: ***_test_log.txt 
-		测试截屏文件为: ***_img.png
-
-
-
-		本邮件由测试框架自动生成, 可以直接回复, 欢迎大家多指教! 
+	****************************************************************************
+	测试地址: #{$START_URL}
+	开始时间: #{$START_TIME}
+	结束时间: #{$FINISH_TIME}
+	总计执行用例: #{$TOTAL_CASE}
+	运行者: #{$RUNNER}
+	****************************************************************************
 		
-		祝顺利!
+	测试的详细报告请参看附件中的内容, 谢谢!
 
-		EOS
+	本邮件由测试框架自动生成, 请勿直接回复, 有问题请联系测试运行者, 欢迎大家多指教! 
+		
+	祝顺利!
+
+	EOS
 
 
 		attachement = generate_attachment # generate attachement
 
 		mail = MailFactory.new 
-		mail.to = ['wangpengcheng03@baidu.com','netdisk-qa@baidu.com'].join(',')
-		mail.from = "#{$RUNNER}" 
+		mail.to = $MAIL_TO
+		mail.from = "#{$MAIL_FROM}" 
 		mail.subject = "网盘Web前端自动化测试报告@#{Time.now.to_s}"
-		# mail.html='</font color="red">htmlconternt</font>'
 		mail.text = mail_content
 		mail.attach(attachement)
-		to = ["#{$MAIL_TO}"]
+		mail_to = $MAIL_TO.split(",")
 
 
 		# msg = [ mail_from, subject, "\n", "#{mail_content}\n" ]  
 		Net::SMTP.start("mail2-in.baidu.com", 25, "baidu.com") do |smtp|  
 	  		# smtp.sendmail(msg, "#{$MAIL_FROM}", "#{$MAIL_TO}")  
-	  		smtp.send_message(mail.to_s, "#{$MAIL_FROM}", to)
+	  		smtp.send_message(mail.to_s, "#{$MAIL_FROM}", mail_to)
 		end
 
-		puts "finished sending mail"
+		puts "* finished sending mail!"
 	end
 
 
@@ -201,6 +181,33 @@ module Batman
 	def self.reg_globle_dbMgr mgr
 		$DB_MGR = mgr
 	end
+
+	def self.close_all_ie
+		# use win32ole
+		mgmt = WIN32OLE.connect('winmgmts:\\\\.')
+		process = mgmt.instancesof("win32_process")
+		process.each do |proc|
+			if proc.name == "iexplore.exe" then proc.terminate() end
+		end	
+	end
+
+	def self.get_home_dir
+		arr = File.dirname(__FILE__).split("/")			
+		return arr[0, arr.index("test_suite")+1].join("\\")
+	end	
+
+	def self.snap_screen
+		# get the dir
+		cmd = "#{$HOME_DIR}\\lib\\snapIt.exe #{$SCREEN_IMG_FOLDER}\\#{$DB_MGR.get_current_case_name.to_s}.png"
+		puts cmd
+		puts %x{#{cmd}}
+	end
+
+
+
+
+
+
 
 
 end

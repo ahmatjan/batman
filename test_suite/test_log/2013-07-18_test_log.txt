@@ -1,0 +1,7 @@
+			**********************************************************
+			* Test case log created by BATMAN MCO-Client-Test        *
+			* Date: 2013-07-18 17:14:52 +0800                                      *
+			* Author: Wang Pengcheng								 *
+			**********************************************************
+
+* test case pass

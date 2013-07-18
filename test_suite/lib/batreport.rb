@@ -116,13 +116,13 @@ module Batman
       		css_local = @css
 			m.html do
         		head do
-                	title "自动化测试报告"
+                	title "Batman自动化测试报告"
                 	style css_local, :type=>"text/css"
         		end
 
         		body do
                 	div :class=>"title" do
-                		p "自动化测试报告-WEB", :class=>"report"
+                		p "Batman自动化测试报告", :class=>"report"
                 	end # end of div title
 
                 	div :class=>"content" do
@@ -174,29 +174,29 @@ module Batman
 
 			summary_table = m.to_s
 			# puts summary_table
-		  begin
-        m = Markaby::Builder.new
-        case_summary_local = @case_summary
+		  	begin
+	        	m = Markaby::Builder.new
+	        	case_summary_local = @case_summary
 
-        #step 3: gen the case_list table
-        # :style=>"text-align: center;"
-        m.table :style=>"text-align: center;" do
-          case_summary_local.each{
-            |k,v|
-            puts "k,v is #{k},#{v}"
-            tr do
-              if v.to_s == "Pass" then
-                td k.to_s+"---"+v.to_s
-              else
-                td k.to_s+"---"+v.to_s, :class=>"del"
-              end # end of
-            end # end tr do@170
-          }
-        end # end of table
-      rescue Exception => e
-        puts e
-        raise "shit"
-      end
+	        	#step 3: gen the case_list table
+	        	# :style=>"text-align: center;"
+	        	m.table :style=>"text-align: center;" do
+	          		case_summary_local.each{
+	            		|k,v|
+	            		puts "* debug: k: #{k} => v: #{v}"
+	            		tr do
+	              			if v.to_s == "Pass" then
+	                			td k.to_s+"---"+v.to_s
+	              			else
+	                			td k.to_s+"---"+v.to_s, :class=>"del"
+	              			end # end of
+	            		end # end tr do@170
+          		}
+        	end # end of table
+      		rescue Exception => e
+        		puts e
+        		raise "shit"
+      		end
 
 			case_list_table = m.to_s
 			# puts case_list_table
@@ -205,28 +205,28 @@ module Batman
 			# step 4 gen the case_datail_table
       		case_detail_local = @case_detail
 			m.table do
-        	case_detail_local.each {
-              |k,v|
-              puts "k is #{k}, v is #{v}"
-              puts v.keys[0].to_s
-	        		tr do
-	            		if (v.has_key? "Pass")
-	                		td k.to_s+"---"+v.keys[0].to_s
-	            		else
-	                		td k.to_s+"---"+v.keys[0].to_s, :class=>"del"
-	            		end
-	        		end # end of the title tr
+	        	case_detail_local.each {
+	              	|k,v|
+	              # puts "k is #{k}, v is #{v}"
+	              # puts v.keys[0].to_s
+		        	tr do
+		            	if (v.has_key? "Pass")
+		                	td k.to_s+"---"+v.keys[0].to_s
+		            	else
+		                	td k.to_s+"---"+v.keys[0].to_s, :class=>"del"
+		            	end
+		        	end # end of the title tr
 
-	         		tr do
-	            		td do
-	                		ol do
-	                    		v.values[0].each do |log|
-	                        		li log
-	                    		end
-	                		end # end of ol
-	            		end # end of the td
-	        		end # end of the tr
-          }# end of each
+		         	tr do
+		            	td do
+		                	ol do
+		                    	v.values[0].each do |log|
+		                        	li log
+		                    	end
+		                	end # end of ol
+		            	end # end of the td
+		        	end # end of the tr
+	         	}# end of each
 			end # end of table
 
 			case_detail_table = m.to_s
@@ -238,8 +238,10 @@ module Batman
 			base_html = base_html.gsub("<table style=\"text-align: center;\">TABLE_OF_CASE_LIST</table>", case_list_table)
 			base_html = base_html.gsub("<table>TABLE_OF_CASE_DETAIL</table>", case_detail_table)
 			# puts base_html
+			time_s = Time.now.to_s.split(" ")[0,2].join("_")
+			time_s = time_s.delete(":")
 
-			File.open("..\\test_log\\report.html","a") do |file|
+			File.open("..\\test_log\\report_#{time_s}.html","a") do |file|
         		file.puts base_html
 			end
 		end # end of the method

@@ -7,25 +7,26 @@ module Batman
 		def initialize
 			# init the db obj/file
 			self.init_db_file
-			self.init_db_table
-			
+			self.init_db_table			
 		end
 
 		def init_db_file
 			# init the db file
 			begin
+				puts "* initialize db file..."
 				@db = SQLite3::Database.new File.join(__FILE__, "../../db/#{$DB_NAME}")
 			rescue Exception => e 
 				puts e
-				raise "Error when initialize test db, message: #{e}"
+				raise "* Error when initialize test db, message: #{e}"
 			end
 		end
 
 		def init_db_table
 			begin
 				# init the table
+				puts "* initialize db tables..."
 				sql_if_table_exists = <<-EOS
-					select COUNT(*) from sqlite_master where type = 'table' and name in ('test_log','test_case','case_log'); 
+					select COUNT(*) from sqlite_master where type = 'table' and name in ('test_log','test_case','case_log','case_yuntu_info'); 
 				EOS
 				sql_create_test_log = <<-EOS
 					CREATE TABLE [test_log] (
@@ -43,7 +44,8 @@ module Batman
 						[case_id] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 						[case_name] VARCHAR(255),
 						[test_id] INTEGER NOT NULL,
-						[case_result] TEXT
+						[case_result] TEXT,
+						[case_time] FLOAT
 					);
 				EOS
 
@@ -58,146 +60,38 @@ module Batman
 					);
 				EOS
 
+				sql_create_case_yuntu_info = <<-EOS
+					CREATE TABLE [case_yuntu_info] (
+						[case_id] INTEGER NOT NULL PRIMARY KEY,
+						[case_name] VARCHAR(255) NOT NULL ,
+						[case_desc] VARCHAR(255) NOT NULL,
+						[case_result] VARCHAR(255) NOT NULL,
+						[case_time] FLOAT NOT NULL,
+						[case_message] VARCHAR(1000) NOT NULL,
+						[api_time] FLOAT NOT NULL
+					);
+				EOS
+
 				sql_init_test_id = "insert into test_log (test_id,total_case,pass_case,fail_case,test_info) values (10001,1,1,0,'this is the init record for table test_log');"
-				sql_init_case_id = "insert into test_case (case_id,case_name,test_id,case_result) values (20001,'initCase',10001,1);"
+				sql_init_case_id = "insert into test_case (case_id,case_name,test_id,case_result,case_time) values (20001,'initCase',10001,1,1.0);"
 				sql_init_case_log = "insert into case_log (log_id,case_id,test_id,log_text) values(30001,20001,10001,'this is a init case log.');"
-				if (@db.execute sql_if_table_exists).to_s != "[[3]]" then
+				if (@db.execute sql_if_table_exists).to_s != "[[4]]" then
 					@db.execute sql_create_test_log
 					@db.execute sql_create_test_case
 					@db.execute sql_create_case_log
+					@db.execute sql_create_case_yuntu_info
 					
 					@db.execute sql_init_test_id
 					@db.execute sql_init_case_id
 					@db.execute sql_init_case_log
 				else 
-					puts "DB Table Exists" 
+					puts "* DB table exists, OK!" 
 				end
 			rescue => initDBTableErr
 				puts initDBTableErr
-				raise "Error when initialize test db table, message: #{initDBTableErr}"
+				raise "* Error when initialize test db table, message: #{initDBTableErr}"
 			end
 		end
-
-		# def get_last_test_id
-		# 	sql_get_last_test_id = "select test_id from test_log order by test_timestamp DESC limit 1;"
-		# 	last_test_id = (@db.execute sql_get_last_test_id)[0][0].to_i
-		# 	last_test_id
-		# end
-
-		# def get_last_case_id
-		# 	sql_get_last_case_id = "select case_id from test_case order by case_id DESC limit 1;"
-		# 	last_case_id = (@db.execute sql_get_last_case_id)[0][0].to_i
-		# 	last_case_id
-		# end
-
-		# def get_last_log_id
-		# 	sql_get_last_log_id = "select log_id from case_log order by log_id DESC limit 1;"
-		# 	last_log_id = (@db.execute sql_get_last_log_id)[0][0].to_i
-		# 	last_log_id
-		# end
-
-		# def write_test_log_table test_data
-		# 	# test_data is a hash
-			
-		# 	# *** table info *** 
-		# 	# [test_id] INT
-		# 	# [test_timestamp] TIMESTAMP
-		# 	# [total_case] INT
-		# 	# [pass_case] INT
-		# 	# [fail_case] INT
-		# 	# [test_info] VAR
-		# 	# ******************
-		# 	sql_sub_key = ""
-		# 	sql_sub_value = ""
-		# 	test_data.each do |k, v|
-		# 		if sql_sub == "" then
-		# 			sql_sub_key += k.to_s
-		# 			sql_sub_value += ("'" + v.to_s + "'")
-		# 		else
-		# 			sql_sub_key += ("," + k.to_s)
-		# 			sql_sub_value += (",'" + v.to_s + "'")
-		# 		end
-		# 	end
-
-		# 	sql_write_table = "insert into test_log ("+ sql_sub_key +") values ("+ sql_sub_value +");"
-		# 	@db.execute sql_write_table
-		# end
-
-		# # def reg_test test_id, test_info
-		# # 	# reg test into the test_log table without test static 
-		# # 	# no return
-		# # 	sql_reg_test = "insert into test_log (test_id, test_info) values (#{test_id}, '#{test_info}');"
-		# # 	@db.execute sql_reg_test
-		# # end
-
-		# def reg_case case_name, test_id
-		# 	# reg a case without result into test_case table
-		# 	# this method return the id of the case
-		# 	sql_reg_case = "insert into test_case (case_name, test_id) values ('#{case_name}',#{test_id});"
-		# 	return (@db.execute "select case_id from test_case where case_name = '#{case_name}' and test_id = #{test_id};")[0][0]
-		# end
-
-
-		# # bug here !!!!!!!!!!!!!!!!!!!!!!!!!!
-		# # update_test_log_table
-		# def update_test_case_table test_data
-		# 	sql_update_test_log = "update test_case set case_result = #{test_data["case_result"].to_i} where case_id = #{test_data["case_id"].to_i} and test_id = #{test_data["test_id"].to_i};"
-		# 	@db.execute sql_update_test_log
-		# end
-
-		# def insert_new_log case_log_info
-		# 	# case_log_info as :
-		# 	# case_log_info["log_id"]=log_info[0]
-		# 	# case_log_info["case_id"]=log_info[1]
-		# 	# case_log_info["test_id"]=log_info[2]
-		# 	# case_log_info["log_text"]=log_info[3]
-		# 	# case_log_info["remark"]=log_info[4]
-		# 	# sql like: insert into case_log (log_id, case_id, test_id, log_text, remark) values ();
-		# 	sql_insert_case_log = "insert into case_log (case_id, test_id, log_text, remark) "
-		# 	+"values (#{case_log_info["case_id"]},#{case_log_info["test_id"]},'#{case_log_info["log_text"]}','#{case_log_info["remark"]}'');"
-			
-		# 	@db.execute sql_insert_case_log
-		# end
-
-		# def update_test_case case_info
-		# 	# ["case_id"] => int, p-key
-		# 	# ["case_name"] => text
-		# 	# ["test_id"] => int
-		# 	# ["case_result"] => text, "0" for fail, "1" for pass
-
-		# 	sql_update_test_case = "update test_case set case_id = "
-		# end
-
-		# def get_fail_case_count test_id
-		# 	sql_count_fail_case = "select count(*) from test_case where test_id = '#{test_id}' "
-		# 	+"and case_result = '0';"
-		# 	fail_case_count = @db.execute sql_count_fail_case
-		# 	return fail_case_count[0][0].to_i
-		# end
-
-		# def get_pass_case_count test_id
-		# 	sql_count_pass_case = "select count(*) from test_case where test_id = '#{test_id}' "
-		# 	+"and case_result = '1';"
-		# 	pass_case_count = @db.execute sql_count_pass_case
-		# 	return pass_case_count[0][0].to_i
-		# end
-
-		# def update_test_log_table test_info
-		# 	# test_info like this :
-		# 	# {
-		# 	# 	"test_id"=>10001,
-		# 	# 	"total_case"=>5,
-		# 	# 	"pass_case"=>4,
-		# 	# 	"fail_case"=>1,
-		# 	# 	"test_info"=>"test test"
-		# 	# }
-
-		# 	sql_update_test_log
-		# end
-
-
-
-
 
 		# **********************重构**************************
 		def update_test_log_table update_sql
@@ -450,9 +344,7 @@ module Batman
 			end
 			sub_sql += ";"
 			sql_select_test_log += sub_sql
-			return (@db.execute sql_select_test_log)
-
-			
+			return (@db.execute sql_select_test_log)		
 		end
 
 		def select_from_test_case_table select_sql
@@ -484,6 +376,7 @@ module Batman
 			end
 			sub_sql += ";"
 			sql_select_test_case += sub_sql
+			# puts "* DEBUG: @#{__FILE__}, line: #{__LINE__}: sql is #{sql_select_test_case}"
 			return (@db.execute sql_select_test_case)
 		end
 
@@ -548,17 +441,13 @@ module Batman
 			pass_case_count = @db.execute sql_count_pass_case
 			return pass_case_count[0][0].to_i
 		end
-
-
-	end
+	end # end of class: TestDB
 
 
 
-	# *************************************************************************
-	# *************************************************************************
-	# *************************************************************************
-
-
+	###########################################################
+	# another class TestDBMgr
+	###########################################################
 
 	class TestDBMgr
 		def initialize
@@ -683,8 +572,8 @@ module Batman
 
 			update_sql = {
 				"pk" => {"case_id" => test_case_info["case_id"].to_i, "test_id" => test_case_info["test_id"].to_i},
-				"keys" => ["case_id", "case_name", "test_id", "case_result"],
-				"values" => [test_case_info["case_id"].to_i, test_case_info["case_name"].to_s, test_case_info["test_id"].to_i, test_case_info["case_result"].to_s]
+				"keys" => ["case_id", "case_name", "test_id", "case_result", "case_time"],
+				"values" => [test_case_info["case_id"].to_i, test_case_info["case_name"].to_s, test_case_info["test_id"].to_i, test_case_info["case_result"].to_s, test_case_info["case_time"].to_f]
 			}
 
       
@@ -696,31 +585,34 @@ module Batman
 
 		
 
-		def log_current_case_fail
+		def log_current_case_fail case_time
 			test_case = {}
 			test_case["case_id"] = $CASE_ID_NAME.invert["#{@current_case_name}"].to_i
 			test_case["case_name"] = @current_case_name.to_s
 			test_case["test_id"] = $TEST_ID.to_i
 			test_case["case_result"] = "0"
+			test_case["case_time"] = case_time
+
 			self.update_test_case test_case
 		end # finish
 
-		def log_current_case_pass
+		def log_current_case_pass case_time
 			test_case = {}
 			test_case["case_id"] = $CASE_ID_NAME.invert["#{@current_case_name}"].to_i
 			test_case["case_name"] = @current_case_name.to_s
 			test_case["test_id"] = $TEST_ID.to_i
 			test_case["case_result"] = "1"
+			test_case["case_time"] = case_time
       
 			self.update_test_case test_case
 		end # finish
 
-		def reg_current_case_result case_result
+		def reg_current_case_result case_result, case_time
       
 			if case_result then 
-				self.log_current_case_pass
+				self.log_current_case_pass case_time
 			else
-				self.log_current_case_fail
+				self.log_current_case_fail case_time
 			end
 		end # finish
 
@@ -765,7 +657,6 @@ module Batman
 			# include: total_case = pass_case + fail_case
 			# data integrity
 			# check_data run before generate the report
-
 		end
 
 		def get_case_result_by_id case_id
@@ -780,6 +671,20 @@ module Batman
 
 			res = @db.select_from_test_case_table select_sql
 			return res[0][0].to_s
+		end
+
+		def get_case_log_by_id case_id
+			# TODO
+			# get the result from db by case_id AFTER the test
+			# return a string
+			# select case_result from test_case where case_id = "***";
+			select_sql = {
+				"what" => ["log_text"],
+				"where" => {"case_id" => case_id.to_i}
+			}
+
+			res = @db.select_from_case_log_table select_sql
+			return res
 		end
 
 		def get_step_by_case_id case_id
@@ -806,8 +711,6 @@ module Batman
 			# no input
 			# no output
 		end
-
-
 	end
 
 	

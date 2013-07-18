@@ -8,8 +8,9 @@ module Batman
 
 		def initialize
 			# regist case
-			puts "initialize the case from batcase"
+			puts "* case start, this case is: #{self.class.name.to_s}"
 			@case_result = true
+			@start_time = Time.now
 
 		end
 
@@ -27,8 +28,9 @@ module Batman
 			
 		end
 
-		def after_case
+		def after_case # this method may not be runned
 			# puts self.class.name
+			
 		end
 
 		# user control zone start ****************************
@@ -44,7 +46,7 @@ module Batman
 			puts "run case from batcase"
 		end
 		# user control zone end ******************************
-		def run_test
+		def run_test db_mgr
 			begin
 				# user zone start ********************** 	
 				self.before_case
@@ -54,12 +56,17 @@ module Batman
 				self.after_case
 				# user zone end ************************
 			rescue => e
-				puts "#{e}, caller is: #{caller}"
+				puts "* Exception: message: #{e}, from #{__FILE__}, @line: #{__LINE__}"
+				Batman.snap_screen
 				@case_result = false
 			ensure
 				# log_case_result
-				puts "reg case result from ensure"
-				$DB_MGR.reg_current_case_result @case_result
+				@cost_time = Time.now - @start_time
+				puts "* this case cost time: " + @cost_time.to_s + "seconds."
+				puts "* debug info: case name: #{self.class.name.to_s}"
+				puts "* debug info: time spend: #{@cost_time}s"
+				puts "* reg case result and time from batcase.ensure....Done"
+				$DB_MGR.reg_current_case_result @case_result, @cost_time
 
 			end
 
