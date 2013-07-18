@@ -145,7 +145,7 @@ module Batman
 
 
 		# msg = [ mail_from, subject, "\n", "#{mail_content}\n" ]  
-		Net::SMTP.start("mail2-in.baidu.com", 25, "baidu.com") do |smtp|  
+		Net::SMTP.start($MAIL_SERVER, 25, $MAIL_SERVER_DOMAIN) do |smtp|  
 	  		# smtp.sendmail(msg, "#{$MAIL_FROM}", "#{$MAIL_TO}")  
 	  		smtp.send_message(mail.to_s, "#{$MAIL_FROM}", mail_to)
 		end

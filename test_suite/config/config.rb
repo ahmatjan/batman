@@ -23,7 +23,8 @@ $USER_PASSWORD = "Y1RGM01tVXpjalE9Cg==\n"
 $RUNNER = "Hexogen"
 $MAIL_FROM = "wangpc.mobile@gmail.com"
 $MAIL_TO = "wangpc.mobile@gmail.com" # if multi reciver, split with "," just like: "222@baidu.com,33@baidu.com"
-$MAIL_SERVER = ""
+$MAIL_SERVER = "smtp.google.com"
+%MAIL_SERVER_DOMAIN = "google.com"
 $SCREEN_IMG_FOLDER = $HOME_DIR + '\test_img'
 $TEST_LOG_FOLDER = $HOME_DIR + '\test_log'  # d:\\test_log\\'
 $ERROR_LOG_FOLDER = $HOME_DIR + '\test_error_log'
@@ -31,6 +32,7 @@ $SUCCESS_CASE = 0
 $FAIL_CASE = 0
 $FAIL_LIST = [] # araay
 $SEND_FILE = false # bool
+$SEND_MAIL = false
 # str
 $ERROR_LOG_HEADER = <<EOS
 **********************************************************

@@ -14,7 +14,7 @@ $DB_MGR.update_test
 reporter = Batman::BatReport.new $TEST_ID, $DB_MGR
 reporter.generate_report
 $FINISH_TIME = Time.now
-Batman.send_mail
+if $SEND_MAIL then Batman.send_mail end
 Batman.close_all_ie
 
 
