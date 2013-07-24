@@ -75,10 +75,15 @@
     case目录: 存放测试用例的目录
     config目录: 存放配置文件的目录
     test_log目录: 存放运行时日志的目录
-    test_error_log目录: 存放异常目录的日志
+    test_error_log目录: 存放异常目录的日志 -- 待优化
     test_img目录: 存放运行截图的目录
     db目录: 存放数据库文件的目录
-今天更新到这里...下次继续更新
+
+要进行测试, 请在case目录下新建一个文件, 例如TestCaseLogin.rb
+在此文件中新建一个与文件同名的类:
+  class TestCaseLogin < Batman::BatCase
+然后, 这个类需要包含三个函数: setup, test, tear_down
+这三个方法会被依次执行, 请在这三个函数中放置你的测试代码
 </code></pre>
 
 <ul>
