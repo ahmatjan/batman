@@ -13,9 +13,9 @@ ___________________________________________________________
 ###注意:  
 ###目前测试发现一个bug 正在修复中, 请大家在test_suite目录下新建如下三个目录:  
 
-> test_log
-> test_img
-> test_err_log
+> test_log  
+> test_img  
+> test_error_log  
 
 
 ### 开发公告
